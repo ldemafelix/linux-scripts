@@ -1,9 +1,12 @@
 #!/bin/bash
 
+REMOTE='b2'
+BUCKET='your-bucket'
+
 for user in $(v-list-sys-users plain)
 do
     echo "Backing up $user..."
     BKOUT=`v-backup-user $user | grep "Local:" | awk '{print $4}'`
     echo "Uploading $BKOUT to remote..."
-    rclone move $BKOUT b2:backups-rpm/hestiacp/
+    rclone move $BKOUT $REMOTE:$BUCKET
 done
