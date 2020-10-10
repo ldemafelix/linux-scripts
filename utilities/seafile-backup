@@ -23,4 +23,6 @@ cd /opt/seafile-backup/data && rm -rf ccnet
 echo "Creating archive..."
 zip -r /opt/seafile-backup.zip /opt/seafile-backup
 
-# Insert rclone command here
+# Upload to remote via rclone
+echo "Uploading to B2..."
+rclone move /opt/seafile-backup.zip b2:liam-backups/seafile-backup.zip
