@@ -1,0 +1,26 @@
+#!/bin/bash
+
+MYSQL_PASSWORD='your-mysql-root-pass-here'
+
+echo "Cleaning up before starting..."
+rm -rf /opt/seafile-backup
+rm -f /opt/seafile-backup.zip
+
+echo "Recreating directories..."
+mkdir -p /opt/seafile-backup/{data,databases}
+
+echo "Backing up ccnet_db..."
+docker exec -it seafile-mysql mysqldump -uroot -p$MYSQL_PASSWORD --opt ccnet_db > /opt/seafile-backup/databases/ccnet_db$
+echo "Backing up seafile_db..."
+docker exec -it seafile-mysql mysqldump -uroot -p$MYSQL_PASSWORD --opt seafile_db > /opt/seafile-backup/databases/seafil$
+echo "Backing up seahub_db..."
+docker exec -it seafile-mysql mysqldump -uroot -p$MYSQL_PASSWORD --opt seahub_db > /opt/seafile-backup/databases/seahub_$
+
+echo "Backing up the data directory..."
+cp -R /opt/seafile-data/seafile /opt/seafile-backup/data/
+cd /opt/seafile-backup/data && rm -rf ccnet
+
+echo "Creating archive..."
+zip -r /opt/seafile-backup.zip /opt/seafile-backup
+
+# INSERT RCLONE COMMAND HERE #
