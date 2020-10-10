@@ -10,11 +10,11 @@ echo "Recreating directories..."
 mkdir -p /opt/seafile-backup/{data,databases}
 
 echo "Backing up ccnet_db..."
-docker exec -it seafile-mysql mysqldump -uroot -p$MYSQL_PASSWORD --opt ccnet_db > /opt/seafile-backup/databases/ccnet_db$
+docker exec -it seafile-mysql mysqldump -uroot -p$MYSQL_PASSWORD --opt ccnet_db > /opt/seafile-backup/databases/ccnet_db.sql
 echo "Backing up seafile_db..."
-docker exec -it seafile-mysql mysqldump -uroot -p$MYSQL_PASSWORD --opt seafile_db > /opt/seafile-backup/databases/seafil$
+docker exec -it seafile-mysql mysqldump -uroot -p$MYSQL_PASSWORD --opt seafile_db > /opt/seafile-backup/databases/seafile_db.sql
 echo "Backing up seahub_db..."
-docker exec -it seafile-mysql mysqldump -uroot -p$MYSQL_PASSWORD --opt seahub_db > /opt/seafile-backup/databases/seahub_$
+docker exec -it seafile-mysql mysqldump -uroot -p$MYSQL_PASSWORD --opt seahub_db > /opt/seafile-backup/databases/seahub_db.sql
 
 echo "Backing up the data directory..."
 cp -R /opt/seafile-data/seafile /opt/seafile-backup/data/
@@ -23,4 +23,4 @@ cd /opt/seafile-backup/data && rm -rf ccnet
 echo "Creating archive..."
 zip -r /opt/seafile-backup.zip /opt/seafile-backup
 
-# INSERT RCLONE COMMAND HERE #
+# Insert rclone command here
