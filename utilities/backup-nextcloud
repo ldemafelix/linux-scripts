@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Nextcloud Backup Script
+# Copyright (c) 2020
+# Liam Demafelix <hey@liam.ph>
+
+# Variables to edit
+PHP_BINARY='/usr/bin/php'
+NEXTCLOUD_APP_PATH='/path/to/nextcloud/wwwroot'
+NEXTCLOUD_DATA_PATH='/path/to/nextcloud/datadir'
+TMP_DIRECTORY='/path/to/temporary/staging/folder'
+MYSQL_HOST='your-mysql-host'
+MYSQL_USER='your-mysql-user'
+MYSQL_PASS='your-mysql-pass'
+MYSQL_NAME='your-mysql-db'
+RCLONE_REMOTE='your-rclone-remote' # Make sure this has NO trailing slash (ex. b2:bucket or b2:bucket/subfolder)
+
+# Fixed-value variables
+TODAY=`date +"%Y-%m-%d"`
+BACKUP_DIRECTORY=$TMP_DIRECTORY/$TODAY
+
+# Force-create the directory
+mkdir -p $BACKUP_DIRECTORY
+
+# Clean the directory (for existing directories)
+rm -rf $BACKUP_DIRECTORY/*
+
+# Put Nextcloud in maintenance mode
+$PHP_BINARY $NEXTCLOUD_APP_PATH/occ maintenance:mode --on
+
+# Backup the Nextcloud app folder
+tar -czvf $BACKUP_DIRECTORY/nextcloud-app.tar.gz $NEXTCLOUD_APP_PATH
+rclone move $BACKUP_DIRECTORY/nextcloud-app.tar.gz $RCLONE_REMOTE/$TODAY/nextcloud-app.tar.gz -P
+
+# Backup the Nextcloud data folder
+tar -czvf $BACKUP_DIRECTORY/nextcloud-data.tar.gz $NEXTCLOUD_DATA_PATH
+rclone move $BACKUP_DIRECTORY/nextcloud-data.tar.gz $RCLONE_REMOTE/$TODAY/nextcloud-data.tar.gz -P
+
+# Dump the MySQL database
+mysqldump --single-transaction -h $MYSQL_HOST -u $MYSQL_USER -p$MYSQL_PASS $MYSQL_NAME | gzip > $BACKUP_DIRECTORY/nextcloud-db.sql.gz
+rclone move $BACKUP_DIRECTORY/nextcloud-db.sql.gz $RCLONE_REMOTE/$TODAY/nextcloud-db.sql.gz -P
+
+# Disable Nextcloud maintenance mode
+$PHP_BINARY $NEXTCLOUD_APP_PATH/occ maintenance:mode --off
