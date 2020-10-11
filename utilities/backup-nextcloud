@@ -30,15 +30,15 @@ $PHP_BINARY $NEXTCLOUD_APP_PATH/occ maintenance:mode --on
 
 # Backup the Nextcloud app folder
 tar -czvf $BACKUP_DIRECTORY/nextcloud-app.tar.gz $NEXTCLOUD_APP_PATH
-rclone move $BACKUP_DIRECTORY/nextcloud-app.tar.gz $RCLONE_REMOTE/$TODAY/nextcloud-app.tar.gz -P
+rclone move $BACKUP_DIRECTORY/nextcloud-app.tar.gz $RCLONE_REMOTE/$TODAY/ -P
 
 # Backup the Nextcloud data folder
 tar -czvf $BACKUP_DIRECTORY/nextcloud-data.tar.gz $NEXTCLOUD_DATA_PATH
-rclone move $BACKUP_DIRECTORY/nextcloud-data.tar.gz $RCLONE_REMOTE/$TODAY/nextcloud-data.tar.gz -P
+rclone move $BACKUP_DIRECTORY/nextcloud-data.tar.gz $RCLONE_REMOTE/$TODAY/ -P
 
 # Dump the MySQL database
 mysqldump --single-transaction -h $MYSQL_HOST -u $MYSQL_USER -p$MYSQL_PASS $MYSQL_NAME | gzip > $BACKUP_DIRECTORY/nextcloud-db.sql.gz
-rclone move $BACKUP_DIRECTORY/nextcloud-db.sql.gz $RCLONE_REMOTE/$TODAY/nextcloud-db.sql.gz -P
+rclone move $BACKUP_DIRECTORY/nextcloud-db.sql.gz $RCLONE_REMOTE/$TODAY/ -P
 
 # Disable Nextcloud maintenance mode
 $PHP_BINARY $NEXTCLOUD_APP_PATH/occ maintenance:mode --off
