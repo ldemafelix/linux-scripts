@@ -1,8 +1,7 @@
 #!/bin/bash
 
 MYSQL_PASSWORD='your-mysql-root-pass-here'
-REMOTE='b2'
-BUCKET='liam-backups'
+RCLONE_REMOTE='your-remote:your-bucket'
 
 echo "Cleaning up before starting..."
 rm -rf /opt/seafile-backup
@@ -27,4 +26,4 @@ zip -r /opt/seafile-backup.zip /opt/seafile-backup
 
 # Upload to remote via rclone
 echo "Uploading to B2..."
-rclone move /opt/seafile-backup.zip $REMOTE:$BUCKET/seafile-backup.zip
+rclone move /opt/seafile-backup.zip $RCLONE_REMOTE/seafile-backup.zip
