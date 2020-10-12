@@ -18,7 +18,7 @@ MYSQL_PASS=''
 MYSQL_NAME=''
 
 # Put Nextcloud in maintenance mode
-su -u $NEXTCLOUD_SYSTEM_USER $PHP_BINARY $NEXTCLOUD_APP_PATH/occ maintenance:mode --on
+su $NEXTCLOUD_SYSTEM_USER -c "$PHP_BINARY $NEXTCLOUD_APP_PATH/occ maintenance:mode --on"
 
 # Create MySQL dump
 rm -f $NEXTCLOUD_PATH/nextcloud-db.sql.gz
@@ -28,4 +28,4 @@ mysqldump --column-statistics=0 --single-transaction -h $MYSQL_HOST -u $MYSQL_US
 RESTIC_PASSWORD=$REPO_PASSWORD restic -r $REPO_NAME --verbose backup $NEXTCLOUD_PATH
 
 # Bring Nextcloud back up
-su -u $NEXTCLOUD_SYSTEM_USER $PHP_BINARY $NEXTCLOUD_APP_PATH/occ maintenance:mode --off
+su $NEXTCLOUD_SYSTEM_USER -c "$PHP_BINARY $NEXTCLOUD_APP_PATH/occ maintenance:mode --off"
