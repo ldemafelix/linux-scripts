@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Nextcloud Backup via restic
+
+# Variables to edit
+PHP_BINARY='/usr/bin/php'
+B2_ACCOUNT_ID=''
+B2_ACCOUNT_KEY=''
+REPO_NAME='' # restic repository name
+REPO_PASSWORD='' # restic repository password
+NEXTCLOUD_PATH='' # must NOT have a trailing slash
+NEXTCLOUD_APP_PATH="$NEXTCLOUD_PATH/www" # path to nextcloud web root relative to $NEXTCLOUD_PATH, change this
+NEXTCLOUD_DATA_PATH="$NEXTCLOUD_PATH/data" # path to nextcloud data directory relative to $NEXTCLOUD_PATH, change this
+NEXTCLOUD_SYSTEM_USER='' # the user that runs nextcloud in the php-fpm context
+MYSQL_HOST=''
+MYSQL_USER=''
+MYSQL_PASS=''
+MYSQL_NAME=''
+
+# Put Nextcloud in maintenance mode
+su -u $NEXTCLOUD_SYSTEM_USER $PHP_BINARY $NEXTCLOUD_APP_PATH/occ maintenance:mode --on
+
+# Create MySQL dump
+rm -f $NEXTCLOUD_PATH/nextcloud-db.sql.gz
+mysqldump --column-statistics=0 --single-transaction -h $MYSQL_HOST -u $MYSQL_USER -p$MYSQL_PASS $MYSQL_NAME | gzip > $NEXTCLOUD_PATH/nextcloud-db.sql.gz
+
+# Start backup
+RESTIC_PASSWORD=$REPO_PASSWORD restic -r $REPO_NAME --verbose backup $NEXTCLOUD_PATH
+
+# Bring Nextcloud back up
+su -u $NEXTCLOUD_SYSTEM_USER $PHP_BINARY $NEXTCLOUD_APP_PATH/occ maintenance:mode --off
