@@ -16,6 +16,13 @@ MYSQL_HOST=''
 MYSQL_USER=''
 MYSQL_PASS=''
 MYSQL_NAME=''
+HETRIXTOOLS_API_KEY=''
+HETRIXTOOLS_ENTITY_ID='' # the ID of your uptime monitor
+HETRIXTOOLS_API_URL='https://api.hetrixtools.com' # replace with https://relay.hetrixtools.com/api for non-Cloudflare endpoint access. value must NOT have a trailing slash.
+HETRIXTOOLS_MAINTENANCE_MODE='3' # 2 - maintenance with notifications, 3 - maintenance without notifications
+
+# Set the HetrixTools uptime monitor to maintenance mode
+curl -X POST $HETRIXTOOLS_API_URL/v2/$HETRIXTOOLS_API_KEY/maintenance/$HETRIXTOOLS_ENTITY_ID/$HETRIXTOOLS_MAINTENANCE_MODE/
 
 # Put Nextcloud in maintenance mode
 su $NEXTCLOUD_SYSTEM_USER -c "$PHP_BINARY $NEXTCLOUD_APP_PATH/occ maintenance:mode --on"
@@ -29,3 +36,6 @@ RESTIC_PASSWORD=$REPO_PASSWORD restic -r $REPO_NAME --verbose backup $NEXTCLOUD_
 
 # Bring Nextcloud back up
 su $NEXTCLOUD_SYSTEM_USER -c "$PHP_BINARY $NEXTCLOUD_APP_PATH/occ maintenance:mode --off"
+
+# Turn off HetrixTools maintenance mode
+curl -X POST $HETRIXTOOLS_API_URL/v2/$HETRIXTOOLS_API_KEY/maintenance/$HETRIXTOOLS_ENTITY_ID/1/
