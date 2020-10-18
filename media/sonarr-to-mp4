@@ -1,0 +1,51 @@
+#!/usr/bin/env php
+<?php
+
+// Initialize variables
+$data = [];
+
+// Get environment variables
+$data['name'] = getenv('sonarr_series_title') ?? '';
+$data['type'] = getenv('sonarr_series_type') ?? '';
+$data['source'] = getenv('sonarr_episodefile_sourcepath') ?? '';
+$data['season'] = getenv('sonarr_episodefile_seasonnumber') ?? '';
+$data['episodes'] = getenv('sonarr_episodefile_episodenumbers') ?? '';
+$data['quality'] = getenv('sonarr_episodefile_quality') ?? '';
+$data['title'] = getenv('sonarr_episodefile_episodetitles') ?? '';
+$data['working_directory'] = '/path/to/transcodes/';
+$data['path'] = getenv('sonarr_episodefile_relativepath');
+
+// Set destination
+$data['destination'] = $data['working_directory'] . $data['name'] . '/';
+mkdir($data['destination'], 0755);
+
+// Paths
+$data['ffmpeg'] = "/usr/bin/ffmpeg";
+$data['rclone'] = "/usr/bin/rclone";
+$data['rclone_remote'] = "myremote:";
+
+// Create an output filename
+$data['season'] = str_pad($data['season'], 2, "0", STR_PAD_LEFT);
+$episodes = "";
+foreach (explode(",", $data['episodes']) as $episode) {
+	$episodes .= "E" . str_pad($episode, 2, "0", STR_PAD_LEFT);
+}
+
+$data['output'] = "{$data['destination']}S{$data['season']}{$episodes} - {$data['title']} ({$data['quality']}).mp4";
+
+// Start conversion
+$command = <<<EOF
+{$data['ffmpeg']} -fix_sub_duration -i "{$data['source']}" -vcodec copy -f mp4 -threads 0 -y "{$data['output']}" &> "{$data['destination']}S{$data['season']}{$episodes} - {$data['title']} ({$data['quality']}).log"
+EOF;
+exec($command, $commandOutput);
+
+// Move somewhere
+$type = (strtolower($data['type']) == 'anime' ? 'Anime' : 'Shows');
+$rcloneCommand = <<<EOF
+{$data['rclone']} move "{$data['output']}" "{$data['rclone_remote']}{$type}/{$data['name']}/Season {$data['season']}/" -P &> "{$data['destination']}S{$data['season']}{$episodes} - {$data['title']} ({$data['quality']}).rclone.log"
+EOF;
+exec($rcloneCommand);
+
+// Cleanup
+exec("rm -rf {$data['output']}");
+exec("rm -rf {$data['path']}");
