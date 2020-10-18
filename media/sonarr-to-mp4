@@ -13,7 +13,7 @@ $data['episodes'] = getenv('sonarr_episodefile_episodenumbers') ?? '';
 $data['quality'] = getenv('sonarr_episodefile_quality') ?? '';
 $data['title'] = getenv('sonarr_episodefile_episodetitles') ?? '';
 $data['working_directory'] = '/path/to/transcodes/';
-$data['path'] = getenv('sonarr_episodefile_relativepath');
+$data['path'] = getenv('sonarr_episodefile_sourcepath');
 
 // Set destination
 $data['destination'] = $data['working_directory'] . $data['name'] . '/';
