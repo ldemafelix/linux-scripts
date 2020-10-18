@@ -6,6 +6,7 @@ $data = [];
 
 // Get environment variables
 $data['name'] = getenv('sonarr_series_title') ?? '';
+$data['name'] = str_replace(['\', '/', ':', '?', '"', '<', '>', '|'], '', $data['name']);
 $data['type'] = getenv('sonarr_series_type') ?? '';
 $data['source'] = getenv('sonarr_episodefile_sourcepath') ?? '';
 $data['season'] = getenv('sonarr_episodefile_seasonnumber') ?? '';
