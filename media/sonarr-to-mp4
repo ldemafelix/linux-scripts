@@ -17,7 +17,7 @@ $data['path'] = getenv('sonarr_episodefile_sourcepath');
 
 // Set destination
 $data['destination'] = $data['working_directory'] . $data['name'] . '/';
-mkdir($data['destination'], 0755);
+@mkdir($data['destination'], 0755);
 
 // Paths
 $data['ffmpeg'] = "/usr/bin/ffmpeg";
