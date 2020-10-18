@@ -77,3 +77,4 @@ exec($rcloneCommand);
 // Cleanup
 exec("rm -rf \"{$data['output']}\"");
 exec("rm -rf \"{$data['path']}\"");
+exec("rm -rf \"{$data['source']}\"");
