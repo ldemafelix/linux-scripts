@@ -22,7 +22,8 @@ $data['destination'] = $data['working_directory'] . $data['name'] . '/';
 // Paths
 $data['ffmpeg'] = "/usr/bin/ffmpeg";
 $data['rclone'] = "/usr/bin/rclone";
-$data['rclone_remote'] = "myremote:";
+$data['ffprobe'] = "/usr/bin/ffprobe";
+$data['rclone_remote'] = "your-remote:";
 
 // Create an output filename
 $data['season'] = str_pad($data['season'], 2, "0", STR_PAD_LEFT);
@@ -34,18 +35,45 @@ foreach (explode(",", $data['episodes']) as $episode) {
 $data['output'] = "{$data['destination']}S{$data['season']}{$episodes} - {$data['title']} ({$data['quality']}).mp4";
 
 // Start conversion
-$command = <<<EOF
+$type = (strtolower($data['type']) == 'anime' ? 'Anime' : 'Shows');
+if ($type == 'Anime') {
+	// Inspect file for audio and subtitles
+	$jsonFile = "{$data['destination']}S{$data['season']}{$episodes} - {$data['title']} ({$data['quality']}).json";
+	exec("{$data['ffprobe']} -v quiet -print_format json -show_format -show_streams \"{$data['source']}\" > \"{$jsonFile}\"");
+	$streamData = json_decode(file_get_contents($jsonFile));
+	
+	// Determine settings
+	$audioStream = 0;
+	$subtitleStream = 0;
+	foreach ($streamData->streams as $stream) {
+		if ($stream->codec_type == 'audio' && !empty($stream->tags->language) && strtolower($stream->tags->language) == 'jpn') {
+			// This is the correct audio stream
+			$audioStream = $stream->index;
+		}
+		if ($stream->codec_type == 'subtitle' && !empty($stream->tags->language) && strtolower($stream->tags->language == 'eng')) {
+			// This is the correct subtitle stream
+			$subtitleStream = $stream->index;
+		}
+	}
+		
+	// Set the command
+	$command = <<<EOF
+{$data['ffmpeg']} -i "{$data['source']}" -filter_complex "[0:v][0:{$subtitleStream}]overlay[v]" -map "[v]" -map 0:{$audioStream} -f mp4 -threads 0 -y "{$data['output']}" &> "{$data['destination']}S{$data['season']}{$episodes} - {$data['title']} ({$data['quality']}).log"
+EOF;
+} else {
+	// This is not anime, so we don't care
+	$command = <<<EOF
 {$data['ffmpeg']} -fix_sub_duration -i "{$data['source']}" -vcodec copy -f mp4 -threads 0 -y "{$data['output']}" &> "{$data['destination']}S{$data['season']}{$episodes} - {$data['title']} ({$data['quality']}).log"
 EOF;
+}
 exec($command, $commandOutput);
 
 // Move somewhere
-$type = (strtolower($data['type']) == 'anime' ? 'Anime' : 'Shows');
 $rcloneCommand = <<<EOF
 {$data['rclone']} move "{$data['output']}" "{$data['rclone_remote']}{$type}/{$data['name']}/Season {$data['season']}/" -P &> "{$data['destination']}S{$data['season']}{$episodes} - {$data['title']} ({$data['quality']}).rclone.log"
 EOF;
 exec($rcloneCommand);
 
 // Cleanup
-exec("rm -rf {$data['output']}");
-exec("rm -rf {$data['path']}");
+exec("rm -rf \"{$data['output']}\"");
+exec("rm -rf \"{$data['path']}\"");
